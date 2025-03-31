@@ -16,12 +16,20 @@ def load_data() -> tuple:
     return train_data, test_data
 
 
-def show_images(test_data) -> None:
-    ''' Visualizza 10 immagini scelte a caso. '''
-    plt.figure(figsize=(10, 4))
-    for i in range(1, 11):
-        X, y = test_data[random.randint(0, len(test_data))]
-        plt.subplot(1, 10, i)
+def load_batch(data, shuffle=False) -> tuple:
+    ''' Carica un batch di dati di addestramento. '''
+    dataloader = iter(DataLoader(data, batch_size=len(data), shuffle=shuffle))
+    X, y = next(dataloader)
+    return X, y
+
+
+def show_images(test_data, random_indexes) -> None:
+    ''' Visualizza n immagini scelte a caso. '''
+    n = len(random_indexes)
+    plt.figure(figsize=(n, 4))
+    for i in range(1, n+1):
+        X, y = test_data[random_indexes[i-1]]
+        plt.subplot(1, n, i)
         plt.title(f"corr: {y}")
         plt.axis("off")
         plt.imshow(X.squeeze(), cmap="gray")
@@ -53,10 +61,10 @@ def test_loop(dataset, batch_size, network) -> float:
     return correct
 
 
-def test_with_prob(test_data, network) -> None:
+def test_with_prob(test_data, random_index, network) -> None:
     ''' Inferenza su 1 immagine scelta a caso e visualizzazione del risultato. '''
     network.eval()                              # metti in modalità di test
-    X, y = test_data[random.randint(0, len(test_data))]
+    X, y = test_data[random_index]
     X = X.unsqueeze(0)                          # aggiunge la dimensione del batch (necessario per la parte convoluzionale, prima veniva fatto automaticamente da dataloader)
     with torch.no_grad():                       # non calcolare i gradienti
         logits = network(X)                     # calcola la previsione
@@ -77,17 +85,19 @@ def test_with_prob(test_data, network) -> None:
     plt.show()
 
 
-def test_loop_with_trace(test_data, network) -> None:
-    ''' Inferenza su 10 immagini scelte a caso e visualizzazione del risultato. '''
+def test_loop_with_trace(test_data, random_indexes, network) -> None:
+    ''' Inferenza su n immagini scelte a caso e visualizzazione del risultato. '''
+    n = len(random_indexes)
     network.eval()
-    plt.figure(figsize=(10, 4))
+    plt.figure(figsize=(n, 4))
     with torch.no_grad():
-        for i in range(1, 11):
-            X, y = test_data[random.randint(0, len(test_data))]
+        for i in range(1, n+1):
+            X, y = test_data[random_indexes[i-1]]
             X = X.unsqueeze(0)                  
             pred = network(X)
-            plt.subplot(1, 10, i)
-            plt.title(f"prev: {pred.argmax(1).item()}\ncorr: {y}")
+            plt.subplot(1, n, i)
+            color = "black" if pred.argmax(1).item() == y else "red"
+            plt.title(f"prev: {pred.argmax(1).item()}\ncorr: {y}", color=color)
             plt.axis("off")
             plt.imshow(X.squeeze(), cmap="gray")
     plt.show()
