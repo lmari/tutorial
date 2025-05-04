@@ -62,15 +62,15 @@ def test_loop(dataset, batch_size, network) -> float:
 
 
 def test_with_prob(test_data, random_index, network) -> None:
-    ''' Inferenza su 1 immagine scelta a caso e visualizzazione del risultato. '''
+    ''' Inferenza su un'immagine scelta a caso e visualizzazione del risultato. '''
     network.eval()                              # metti in modalità di test
     X, y = test_data[random_index]
     X = X.unsqueeze(0)                          # aggiunge la dimensione del batch (necessario per la parte convoluzionale, prima veniva fatto automaticamente da dataloader)
     with torch.no_grad():                       # non calcolare i gradienti
         logits = network(X)                     # calcola la previsione
-    pred_probab = nn.Softmax(dim=1)(logits)     # converti la previsione in una distribuzione di probabilità (con la SoftMax)
-    pred_probab_np = pred_probab.cpu().detach().numpy()[0]
+    pred_probab = nn.Softmax(dim=1)(logits)     # converti la previsione in una distribuzione di probabilità
     y_pred = pred_probab.argmax(1)              # trova la classe più probabile         
+    pred_probab_np = pred_probab.cpu().detach().numpy()[0]
     classes = np.arange(10)
     fig, axs = plt.subplots(1, 2, figsize=(8,3), gridspec_kw={'width_ratios':[1,4]})
     fig.tight_layout(pad=5.0)
